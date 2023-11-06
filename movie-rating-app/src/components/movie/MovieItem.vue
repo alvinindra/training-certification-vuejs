@@ -1,12 +1,14 @@
 <script setup>
 import { StarIcon } from "@heroicons/vue/24/solid";
-
-defineProps({
+import { ref } from "vue";
+const props = defineProps({
   movie: {
     type: Object,
     required: true
   }
 })
+
+const rating = ref(props.movie.rating);
 </script>
 
 <template>
@@ -24,10 +26,12 @@ defineProps({
         {{ movie.description }}
       </p>
       <div class="flex flex-row mt-auto">
-        <div>Rating: ({{ movie.rating }}/5)</div>
+        <div>Rating: ({{ rating }}/5)</div>
         <div class="ml-4 flex flex-row gap-1">
-          <StarIcon class="h-[24px] w-[24px] fill-yellow-400" v-for="(_star, indexStar) in movie.rating"
-            :key="indexStar" />
+          <StarIcon
+            :class="['h-[24px] w-[24px] cursor-pointer', indexStar < rating ? 'fill-yellow-500' : 'fill-gray-500', rating === star && '!cursor-not-allowed']"
+            v-for="(star, indexStar) in 5" :key="'star-' + indexStar" @click="rating = star"
+            :disabled="star === rating" />
         </div>
       </div>
     </div>
