@@ -8,12 +8,22 @@ const props = defineProps({
   }
 })
 
-const rating = ref(props.movie.rating);
+let rating = ref(props.movie.rating);
+
+function updateRating (ratingItem) {
+  rating.value = ratingItem;
+}
 </script>
 
 <template>
   <div class="flex flex-col flex-shrink-0 rounded-lg">
-    <img class="w-full max-h-[600px] object-cover rounded-t-lg" :src="movie.image" :alt="movie.name" />
+    <div class="relative">
+      <img class="w-full max-h-[600px] object-cover rounded-t-lg" :src="movie.image" :alt="movie.name" />
+      <div class="absolute right-4 top-4">
+        <StarIcon class=" w-[50px] h-[50px] fill-yellow-500"></StarIcon>
+        <span class="text-black absolute inline-block align-middle top-3 left-5">{{ rating ? rating : '-' }}</span>
+      </div>
+    </div>
     <div class="flex flex-col h-full bg-white py-4 px-3 rounded-b-lg">
       <div class="font-bold text-3xl">{{ movie.name }}</div>
       <div class="flex gap-1 mb-4">
@@ -30,7 +40,7 @@ const rating = ref(props.movie.rating);
         <div class="ml-4 flex flex-row gap-1">
           <StarIcon
             :class="['h-[24px] w-[24px] cursor-pointer', indexStar < rating ? 'fill-yellow-500' : 'fill-gray-500', rating === star && '!cursor-not-allowed']"
-            v-for="(star, indexStar) in 5" :key="'star-' + indexStar" @click="rating = star"
+            v-for="(star, indexStar) in 5" :key="'star-' + indexStar" @click="updateRating(star)"
             :disabled="star === rating" />
         </div>
       </div>
