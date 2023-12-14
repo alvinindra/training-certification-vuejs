@@ -1,0 +1,412 @@
+
+## Transitions
+
+Apa yang muncul dikepala Anda jika mendengar istilah “transisi”? Jika menjawab “terjadinya proses perpindahan”, Anda tepat! Satu hal yang didukung oleh vue.js adalah menyediakan built-in component, yaitu <code v-pre><Transition></code> dan <code v-pre><TransitionGroup></code>.
+
+- <code v-pre><Transition></code>: menerapkan animasi saat elemen atau component terjadi perpindahan, mulai dari permulaan hingga akhir proses. Proses permulaan disebut dengan **enter**, sedangkan akhir dari proses disebut dengan **leave**.
+- <code v-pre><TransitionGroup></code>: mirip dengan <code v-pre><Transition></code>, tetapi ia digunakan untuk sebuah list, v-for.
+
+Disamping dari dua component ini, kita juga bisa memberikan animasi dengan teknik lain, yaitu **toggling CSS class** atau **state drive animation melalui style binding**. Ini dicakup dalam bab [Animation Technique](https://vuejs.org/guide/extras/animation.html).
+
+### Component <code v-pre><Transition></code>
+
+Karena sebuah built-in component, ia dapat digunakan dimana pun tanpa mendaftarkannya. Ia dapat digunakan untuk menerapkan animasi ditahap enter dan leave. Pemicu dari proses animasi ini ada beberapa.
+
+- kondisional rendering: v-if
+- kondisional display: v-show
+- dynamic component toggling via <code v-pre><component></code> spesial element.
+- Mengubah atribut spesial: key.
+
+Contoh:
+
+```vue
+<button @click="show = !show">Toggle</button>
+<Transition>
+  <p v-if="show">hello</p>
+</Transition>
+```
+
+```css
+/* Beberapa class ini akan dibahas terpisah */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+```
+
+`<code v-pre><Transition></code> hanya dapat bekerja dengan baik jika hanya memiliki satu buat child. Ini juga berlaku bagi vue component. Oleh karena itu, suatu komponen wajib memiliki satu root element saja.
+
+Saat elemen yang berada dalam <code v-pre><Transition></code> dalam kondisi masuk atau keluar, beberapa hal yang terjadi:
+
+- Vue secara otomatis akan menduga atau mencium target elemen bahwa ia menerapkan transisi atau animasi CSS. Jika benar, beberapa class yang berkaitan dengan transisi akan ditambah atau dihilangkan pada waktu tepat.
+- Jika terhadap JavaScript hook, function tersebut akan dijalankan pada waktu yang tepat.
+- Jika tidak ada css transisi atau animasi yang terdeteksi dan JavaScript hook,  operasi DOM untuk menghilangkan atau menambahkan akan dilakukan pada frame selanjutnya.
+
+### CSS Based Transition
+
+Sebagaimana contoh sebelumnya, Anda melihat empah buah class yang diterapkan, tetapi tidak ada satu pun komponen atau elemen yang memiliki class ini.
+
+Sebetulnya, <code v-pre><Transition></code> akan memberikan beberapa class khusus agar dapat berjalan dengan baik. Perhatikan gambar berikut.
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/e26f1060-bf77-4854-a6ff-018b1d740841/c9e648db-cf7d-49dd-9c03-186c6beb3965/Untitled.png)
+
+Setiap class memiliki perannya masing-masing.
+
+- `v-enter-from`: permulaan kondisi untuk memasuki proses transisi. Ini ditambahkan ke elemen sebelum elemen dimasukkan dan dihilangkan satu frame setelah proses transisi enter elemen berjalan.
+- `v-enter-active`: kondisi aktifnya proses transisi untuk masuk. Ini akan diterapkan pada elemen pada fase proses transisi berjalan dan dihilangkan sesaat setelah proses transisi selesai. Class ini dapat digunakan untuk mendefinisikan durasi, waktu delay, dan tipe transisinya.
+- `v-enter-to`: kondisi terakhir dari proses enter. Ia akan diterapkan pada elemen pada saat elemen telah dimasukkan. Ini juga terjadi saat kondisi class `v-enter-from` sudah dihilangkan. Selain itu, class v-enter-to juga akan dihilangkan saat proses transisi enter berakhir.
+- `v-leave-from`: kondisi permulaan proses leave dilakukan. Class ini akan ditambahkan saat transisi leave dipicu dan dihilang sesaat setelah proses transisi leave berjalan.
+- `v-leave-active`: Kondisi proses transisi leave sedang aktif. Class ini akan ditambahkan ke elemen saat fase transisi leave dipicu dan akan dihilangkan saat transisi sudah berakhir. Mirip dengan v-enter-active, class ini dapat digunakan untuk mendefinisikan durasi, waktu delay, dan tipe transisinya.
+- `v-leave-to`: kondisi akhir dari proses leave. Class ini akan diterapkan 1 frame setelah proses transisi dipicu. Ini mirip dengan v-enter-to bahwa kondisi diterapkannya class ini pada saat `v-leave-from` telah dihapuskan.
+
+v-enter-active dan v-leave-active memberikan kemampuan untuk menentukan tipe atau jenis transisi untuk transisi enter/leave.
+
+### Menamakan Transisi
+
+Setiap class transisi selalu diawali dengan `v-`. Apakah terpikirkan oleh Anda dalam mengubah ini? Vue memberikan fleksibilitas. Kita bisa mengganti nama transisi dengan menambahkan prop `name` dari component `<Transition>`.
+
+### Custom Transition Classes
+
+Tidak hanya itu, Vue masih memberikan fleksibilitas yang tinggi. Mungkin kita tidak suka penamaan standar yang digunakan Vue. Kita dapat menentukan nama class-nya sendiri jika memang dibutuhkan.
+
+Caranya adalah kita terapkan beberapa props:
+
+- `enter-from-class`
+- `enter-active-class`
+- `enter-to-class`
+- `leave-from-class`
+- `leave-active-class`
+- `leave-to-class`
+
+Setiap prop berkorespondensi sesuai dengan nama class-nya. Di sini kita bisa memberikan nama class transisi yang diinginkan dengan memberi value pada beberapa props di atas.
+
+Tidak hanya sesederhana itu, tentu ini sangat bermanfaat jika kita menerapkan library ttg animation.
+
+### Gunakan Transisi dan Animasi Sekaligus
+
+Pada dasarnya, Vue akan mendeteksi secara otomatis apakah proses transisi memanfaatkan CSS transition atau CSS animation. Mudah, ya?
+
+Namun, terkadang ada kasus yang meminta kita memanfaatkan keduanya di elemen yang sama. Dalam kasus ini, kita diwajibkan untuk menentukan typenya secara eksplisit agar Vue mengetahui mana yang ditangani. Ini dapat dilakukan dengan prop `type` dengan nilai antara animation atau transition.
+
+### Nested Transition dan Durasi Transisi yang Eksplisit
+
+Ingat! <code v-pre><Transition></code> hanya bekerja dengan baik jika hanya memiliki satu child element atau component.
+
+Meskipun demikian, kita bisa menerapkan transisi pada nested element, lo. 
+
+```vue
+<Transition name="nested">
+  <div v-if="show" class="outer">
+    <div class="inner">
+      Hello
+    </div>
+  </div>
+</Transition>
+```
+
+```css
+/* rules that target nested elements */
+.nested-enter-active .inner,
+.nested-leave-active .inner {
+  transition: all 0.3s ease-in-out;
+}
+
+.nested-enter-from .inner,
+.nested-leave-to .inner {
+  transform: translateX(30px);
+  opacity: 0;
+}
+
+/* ...other necessary CSS omitted */
+```
+
+Bahkan, kita dapat menambahkan waktu delay transisi pada nested pada enter. Ini akan menimbulkan urutan transisi enter. Selain itu, ini juga menimbulkan efek staggered.
+
+```css
+/* delay enter of nested element for staggered effect */
+.nested-enter-active .inner {
+  transition-delay: 0.25s;
+}
+```
+
+Namun, ini akan menyebabkan masalah kecil. Secara default, <Transition> mencoba mencari secara otomatis terkait waktu-waktu proses transisi akan berakhir dengan listen to `transitionend` atau `animationend` event. Dengan transisi pada nested element, transisi utama harus menunggu hingga transisi untuk seluruh inner element selesai.
+
+Untuk menangani masalah di atas, kita dapat menentukan durasi transisi secara eksplisit dengan prop `duration` pada `<Transition>`. Durasi yang diminta di sini adalah akumulasi dari waktu transisi dan waktu delay transisi yang terjadi pada inner element.
+
+```vue
+<Transition :duration="550">...</Transition>
+```
+
+Nilai di atas akan diberlakukan untuk enter dan leave sekaligus. Jika ingin menentukannya secara terpisah, kita juga bisa melakukannya.
+
+```vue
+<Transition :duration="{ enter: 500, leave: 800 }">...</Transition>
+```
+
+### Pertimbangan Performa
+
+Mungkin kita melihat bahwa kebanyakan contoh animasi terkait transisi adalah `transform` dan `opacity`. Apa alasannya? Hal ini karena mereka lebih efisien untuk dilakukan animasi:
+
+- Kedua properti CSS tersebut tidak akan mempengaruhi layout dari halaman web sehingga mereka tidak sering melakukan kalkulasi perubahan CSS layout yang banyak setiap terjadi transisi.
+- Browser terkini sudah dapat memanfaatkan GPU hardware acceleration saat melakukan animasi dengan `transform`.
+
+Sebagai perbandingan, properti seperti padding dan margin akan memicu perubahan CSS layout. Ini menyebabkan kalkulasi yang lebih berat dan harus berhati-hati dalam memakainya.
+
+### JavaScript Hook
+
+Selain menerapkan transition atau animation menggunakan CSS, kita bisa memanfaatkan JavaScript untuk melakukannya juga. Caranya memanfaatkan event yang ada pada <code v-pre><Transition></code>.
+
+```vue
+<Transition
+  @before-enter="onBeforeEnter"
+  @enter="onEnter"
+  @after-enter="onAfterEnter"
+  @enter-cancelled="onEnterCancelled"
+  @before-leave="onBeforeLeave"
+  @leave="onLeave"
+  @after-leave="onAfterLeave"
+  @leave-cancelled="onLeaveCancelled"
+>
+  <!-- ... -->
+</Transition>
+```
+
+```jsx
+// called before the element is inserted into the DOM.
+// use this to set the "enter-from" state of the element
+function onBeforeEnter(el) {}
+
+// called one frame after the element is inserted.
+// use this to start the entering animation.
+function onEnter(el, done) {
+  // call the done callback to indicate transition end
+  // optional if used in combination with CSS
+  done()
+}
+
+// called when the enter transition has finished.
+function onAfterEnter(el) {}
+
+// called when the enter transition is cancelled before completion.
+function onEnterCancelled(el) {}
+
+// called before the leave hook.
+// Most of the time, you should just use the leave hook
+function onBeforeLeave(el) {}
+
+// called when the leave transition starts.
+// use this to start the leaving animation.
+function onLeave(el, done) {
+  // call the done callback to indicate transition end
+  // optional if used in combination with CSS
+  done()
+}
+
+// called when the leave transition has finished and the
+// element has been removed from the DOM.
+function onAfterLeave(el) {}
+
+// only available with v-show transitions
+function onLeaveCancelled(el) {}
+```
+
+Tentunya, JS hook ini bisa dikombinasikan dengan CSS transition atau animation. Namun, menjadi ide yang sangat bagus bila kita memberi `:css="false"`. Ini akan memberi sinyal pada Vue bahwa ia tidak perlu melakukan deteksi type transisi yang digunakan. Selain mempengaruhi performa, ini juga mencegah CSS melakukan intervensi terhadap proses transisi yang berjalan.
+
+```vue
+<Transition
+  ...
+  :css="false"
+>
+  ...
+</Transition>
+```
+
+Mematikan styling dalam <code v-pre><Transition></code> juga memberikan tanggung jawab penuh atau kendali penuh pada saat transisi sudah berakhir. Dalam kasus ini, ada akses terhadap function `done` dalam proses terjadinya transisi enter dan leave. Ini dibutuhkan untuk menandakan bahwa transisi benar benar telah berakhir saat eksekusi kode mencapai function tersebut. Jika tidak memanfaatkan ini, javascript hook akan dijalankan secara sinkronus dan proses transisi akan diakhiri segera.
+
+[Playground JavaScript Hook dengan GreenSock](https://play.vuejs.org/#eNqNVMtu2zAQ/JUti8I2YD3i1GigKmnaorcCveTQArpQFCWzlkiCpBwHhv+9Sz1qKYckJ3FnlzvD2YVO5KvW4aHlJCGpZUZoB5a7Vt9lUjRaGQcnMLyEM5RGNbDA0sX/VGWpHnB/xEQmmZIWe+zUI9z6m0tnWr7ymbKVzAklQclvvFSG/5COmyWvV3DKJHTdQiRHZN0jAJbRmv9OIA432/UE+jODlKZMuKcErnx8RrazP8woR7I1FEryKaVTU8aiNdRfwWZTQtQwi1HAGF/YB4BTyxNY8JpaJ1go5K/WLTfhdg1Xq8V4SX5Xja65w0ovaCJ8Jvsnpwc+l525F2XH4ac3Cj8mcB3HbxE9qnvFMRzJ0K3APuhIjPefmTTyvWBAGvWbiDuIgeNYRh3HCCDNW+fQmHtWC7a/zciwaO/8NyN3D6qqap5GfVnXAC89GCqt8Bp77vu827+A+53AJrOFzMhQdMnO8dqPpMO74Yx4wqxFtKS1HbBOMdIX4gAMffVp71+Qq2NG4BCIcngBKk8jLOvfGF30IpBGEwcwtO6p9sdwbNXPIadsXxnVyiKB9x83+c3N9WePN9RUQgZO6QQ2sT524KMo3M5Pf4h3XFQ7NwFyZQpuAkML0doEtvEHhPvRDPRkTfq/QNDgRvy1SuIvpFOSDQmbkWTckf7hHsjIzjltkyhqpd5XIVNN5HNfGlW09eAcMp3J+R+pEn7L).
+
+### Reusable Transition
+
+Agar transisi dapat digunakan berulang kali dalam aplikasi, kita bisa membuat vue component yang khusus untuk masalah transisi. Apakah ini terdengar aneh karena membuat komponen yang untuk komponen yang sudah jadi? Tentu tidak. Barang kali kita memiliki kebutuhan tertentu sehingga lebih efektif dibungkus dalam komponen lagi.
+
+```vue
+<!-- MyTransition.vue -->
+<script>
+// JavaScript hooks logic...
+</script>
+
+<template>
+  <!-- wrap the built-in Transition component -->
+  <Transition
+    name="my-transition"
+    @enter="onEnter"
+    @leave="onLeave">
+    <slot></slot> <!-- pass down slot content -->
+  </Transition>
+</template>
+
+<style>
+/*
+  Necessary CSS...
+  Note: avoid using <style scoped> here since it
+  does not apply to slot content.
+*/
+</style>
+```
+
+Sudah dibuat dan kita bisa memanfaatkannya sekarang.
+
+```vue
+<MyTransition>
+  <div v-if="show">Hello</div>
+</MyTransition>
+```
+
+### Menjalankan Transition saat Elemen Telah Muncul
+
+Transisi berjalan saat ada pemicu yang terjadi. Jika ingin menjalankan transisi saat node pertama kali render, kita dapat menambahkan prop `appear`.
+
+```vue
+<Transition appear>
+  ...
+</Transition>
+```
+
+### Transisi Diantara Elemen
+
+Selain memicu transisi yang terjadi dengan v-if atau v-show, kita bisa melakukan transisi antar dua elemen menggunakan v-if, v-else-if, dan v-else. Namun, pastikan tetap satu elemen yang tampil.
+
+```vue
+<Transition>
+  <button v-if="docState === 'saved'">Edit</button>
+  <button v-else-if="docState === 'edited'">Save</button>
+  <button v-else-if="docState === 'editing'">Cancel</button>
+</Transition>
+```
+
+Perhatikan! Pada awal pembahasan, kita tahu bahwa hanya boleh ada satu child saja dalam component `<Transition>`. Nah, untuk kasus di atas, ini aman karena tetap hanya satu elemen saja yang tampil karena di atasi oleh conditional rendering.
+
+### Mode Transisi
+
+Mode transisi memberikan kemampuan mengatur kapan elemen yang terjadi leaving selesai diproses sebelum terjadinya proses entering untuk elemen lainnya. Yap, ini berkaitan dengan materi **Transisi Diantara Elemen**.
+
+Biasanya, kita menginginkan proses transisi leaving diselesaikan dahulu sebelum terjadinya proses entering. Ini bisa dilakukan dengan menambahkan `mode=out-in` pada `<Transition>`.
+
+### Transisi pada Dynamic Component
+
+`<Transition>` dapat diterapkan pada dynamic component.
+
+```vue
+<Transition name="fade" mode="out-in">
+  <component :is="activeComponent"></component>
+</Transition>
+```
+
+Sama seperti pembahasan sebelumnya, ini dibutuhkan sebuah mode transisi karena ini termasuk transisi diantara elemen. Bayangkan saja ada beberapa child dari `<Transition>`.
+
+Materi tambahan terkait dynamic component: https://vuejs.org/guide/essentials/component-basics#dynamic-components
+
+## <TransitionGroup>
+
+Tidak ada yang membedakan antara <TransitionGroup> dengan <Transition> melainkan ia akan mengatur proses proses animasi dari pemasukkan, penghilangan, atau pengubahan urutan dari beberapa elemen atau component yang dirender dalam list.
+
+<TransitionGroup> dan <Transition> memiliki perbedaan berikut.
+
+- tidak merender wrapper element kecuali menentukan `tag` prop.
+- Tidak tersedia mode transisi karena kita tidak lagi menangani pergantian elemen.
+- Elemen elemen di dalamnya diwajibkan memiliki atribut `key`.
+- Class yang berkaitan CSS transition akan diterapkan di setiap daftar elemen, bukan elemen container.
+
+### Contoh dari Transisi Enter/Leave
+
+```vue
+<TransitionGroup name="list" tag="ul">
+  <li v-for="item in items" :key="item">
+    {{ item }}
+  </li>
+</TransitionGroup>
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+```
+
+### Move Transitions
+
+Dari contoh di atas, sebetulnya pergerakan pemasukkan atau pengeluaran elemen sudah berjalan dengan sangat baik. Namun, saat terjadi pemasukkan elemen lainnya (atas dan bawahnya) terjadi pergeseran yang tidak halus. Begitu juga dengan pengeluaran elemen. 
+
+Oleh karena itu, Ada beberapa CSS rules tambahan untuk mengatasi masalah ini.
+
+```css
+.list-move, /* menerapkan transisi yang halus pada saat perpindahan */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* Agar terjadi perpindahan yang mulus, elemen-elemen perlu dikeluarkan dari normal flow. */
+.list-leave-active {
+  position: absolute;
+}
+```
+
+```vue
+<ul class="container">
+  <div class="item">1 <button>x</button></div>
+  <div class="item fade-enter-active fade-enter-to">6 <button>x</button></div>
+  <div class="item fade-move" style="">2 <button>x</button></div>
+  <div class="item fade-move" style="">3 <button>x</button></div>
+  <div class="item fade-move" style="">4 <button>x</button></div>
+  <div class="item fade-move" style="">5 <button>x</button></div>
+</ul>
+```
+
+### Memanfaatkan JavaScript Hook di Setiap Lifecycle
+
+```vue
+<TransitionGroup
+  tag="ul"
+  :css="false"
+  @before-enter="onBeforeEnter"
+  @enter="onEnter"
+  @leave="onLeave"
+>
+  <li
+    v-for="(item, index) in computedList"
+    :key="item.msg"
+    :data-index="index"
+  >
+    {{ item.msg }}
+  </li>
+</TransitionGroup>
+```
+
+```vue
+function onEnter(el, done) {
+  gsap.to(el, {
+    opacity: 1,
+    height: '1.6em',
+    delay: el.dataset.index * 0.15,
+    onComplete: done
+  })
+}
+```
+
+[Full Example of JavaScript Hook on <TransitionGroup>](https://play.vuejs.org/#eNqlVMuu0zAQ/ZVRNklRm7QLWETtBW4FSFCxYkdYmGSSmjp28KNQVfl3xk7SFyvEponPGc+cOTPNOXrbdenRYZRHa1Nq3lkwaF33VEjedkpbOIPGeg6lajtnsYIeaq1aiOlSfAlqDOtG3L8SUchSSWNBcPrZwNdCAqVqTZND/KxdibBDjKGf3xIfWXngCNs9k4/Udu/KA3xWWnPz1zW0sOOP6CcnG3jv9ImIQn67SvrpUJ9IE/WVxPHsSkw97gbN0zFJZrB5grNPrskcLUNXac2FRZ0k3GIbIvxLSsVTq3bqF+otM5jMUi5L4So0SSicHplwOKOyfShdO1lariQo+Yy10vhO+qwoZkNFFKmxJ4Gp6ljJrRe+vMP3yJu910swNXqXcco1h0pJHDP6CZHEAAcAYMydwypYCDAkJRdX6Sts4xGtUDAKotIVs9Scpd4q/A0vYJmuXo5BSm7JOIEW81DVo77VR207ZEf8F23LB23T+X9VrbNh82nn6UAz7ASzSCeANZe0AnBctIqqbIoojLCIIBvoL5pJw31DH7Ry3VDKsoYinSii4ZyXxhBQM2Fwwt58D7NeoB8QkXfDvwRd2XtceOsCHkwc8KCINAk+vADJppQUFjZ0DsGVGT3uFn1KSjoPeKLoaYtvCO/rIlz3vH9O5FiU/nXny/pDT6YGKZngg0/Zg1GErrMbp6N5NHxJFi3N/4dRkj5IYf5ULxCmiPJpI4rIr4kHimhvbWfyLHOyOzQpNZZ57jXNy4nRGFLTR/0fWBqe7w==)
